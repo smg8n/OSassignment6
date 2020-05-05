@@ -166,7 +166,7 @@ void manager()
 
 	waitingroom = queueinit(10);
 
-	printf("\n[oss]: running simulation\n[oss]: on memory request scheme %i\n[oss]: ctrl-c to terminate\n", scheme);
+	printf("\n[oss]: running simulation\n[oss]: on memory request scheme %i\n", scheme);
 
 	while(1)
 	{
