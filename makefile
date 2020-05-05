@@ -14,8 +14,8 @@ $(BIN_NATIVE): $(OBJ_NATIVE)
 $(BIN_TARGET): $(OBJ_TARGET)
 	$(CC) -ggdb -o $(BIN_TARGET) $(OBJ_TARGET) -lpthread
 $(OBJ_NATIVE): oss.c
-	$(CC) $(CFLAGS) -c oss.c shmem.h
+	$(CC) $(CFLAGS) -c oss.c
 $(OBJ_TARGET): usr.c
-	$(CC) $(CFLAGS) -c usr.c shmem.h
+	$(CC) $(CFLAGS) -c usr.c 
 clean:
 	/bin/rm -f *.o $(BIN_NATIVE) $(BIN_TARGET)
