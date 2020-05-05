@@ -1,3 +1,5 @@
+/* PREPROCESSOR DIRECTIVES ============================================= */
+/* ===================================================================== */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,7 +7,6 @@
 #include <sys/shm.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/msg.h>
 #include <sys/types.h>
@@ -14,9 +15,19 @@
 
 #include "shmem.h"
 #include "queue.h"
+/* END ================================================================= */
+
+
+/* CONSTANTS =========================================================== */
+/* ===================================================================== */
 const int probthatprocterminates = 15;
 const int probthatprocrequests  = 85;
 const int bound = 1000000;
+/* END ================================================================= */
+
+
+/* GLOBAL VARIABLES ==================================================== */
+/* ===================================================================== */
 shmem* smseg;
 int sipcid;
 int tousr;
@@ -24,15 +35,30 @@ int tooss;
 float reqpage;
 float randbound;
 float memaddr;
+/* END ================================================================= */
+
+
+/* GLOBAL MESSAGE QUEUE ================================================ */
+/* ===================================================================== */
 struct 
 {
 	long msgtype;
 	char message[100];
 } msg;
+/* END ================================================================= */
+
+
+/* FUNCTION PROTOTYPES ================================================= */
+/* ===================================================================== */
 void sminit();
 void msginit();
 void clockinc(simclock *, int, int);
 void addarray();
+/* END ================================================================= */
+
+
+/* MAIN ================================================================ */
+/* ===================================================================== */
 int main(int argc, char *argv[])
 {
 
@@ -159,7 +185,7 @@ int main(int argc, char *argv[])
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 
 
-					sprintf(msg.message, "%f", memaddr);
+					sprintf(msg.message, "%i", memaddr);
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 
 					while(1)
@@ -178,7 +204,7 @@ int main(int argc, char *argv[])
 					msg.msgtype = proc;
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 					
-					sprintf(msg.message, "%f", memaddr);
+					sprintf(msg.message, "%i", memaddr);
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 
 					while(1)
@@ -206,6 +232,11 @@ int main(int argc, char *argv[])
 		}
 	}
 }
+/* END ================================================================= */
+
+
+/* ADDS TIME BASED ON SECONDS AND NANOSECONDS ========================== */
+/* ===================================================================== */
 void clockinc(simclock* khronos, int sec, int nan)
 {
 	khronos->secs = khronos->secs + sec;
@@ -216,6 +247,11 @@ void clockinc(simclock* khronos, int sec, int nan)
 		(khronos->secs)++;
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIATES MESSAGES ================================================== */
+/* ===================================================================== */
 void msginit()
 {
 	key_t msgkey = ftok("msg1", 925);
@@ -246,6 +282,11 @@ void msginit()
 		exit(EXIT_FAILURE);
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIATES SHARED MEMORY ============================================= */
+/* ===================================================================== */
 void addarray()
 {
 	int i;
@@ -255,6 +296,11 @@ void addarray()
 	}
 	randbound = smseg->weightarr[i];
 }
+/* END ================================================================= */
+
+
+/* INITIATES SHARED MEMORY ============================================= */
+/* ===================================================================== */
 void sminit()
 {
 	key_t smkey = ftok("shmfile", 'a');
@@ -279,3 +325,4 @@ void sminit()
 		exit(EXIT_FAILURE);
 	}
 }
+/* END ================================================================= */

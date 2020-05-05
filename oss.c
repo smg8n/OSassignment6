@@ -1,3 +1,5 @@
+/*   DIRECTIVES ============================================= */
+/* ===================================================================== */
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -6,18 +8,28 @@
 #include <signal.h>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
-#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/msg.h>
 
 #include "queue.h"
 #include "shmem.h"
+/* END ================================================================= */
+
+
+/* CONSTANTS =========================================================== */
+/* ===================================================================== */
 const int pagesize = 1;
 const int procsize = 32;
 const int memsize = 256;
+/* ===================================================================== */
+
+
+/* GLOBAL STRUCTS ====================================================== */
+/* ===================================================================== */
 struct 
 {
 	long msgtype;
@@ -51,6 +63,11 @@ struct memory
 	struct frame frameinstance[256];
 	struct pagetable pagetableinstance[18];
 };
+/* END ================================================================= */
+
+
+/* GLOBAL VARIABLES ==================================================== */
+/* ===================================================================== */
 struct sigaction satime;
 struct sigaction sactrl;
 struct Queue *waitingroom;
@@ -65,6 +82,11 @@ int scheme = 0;
 int pagefaults;
 int reqcount;
 int lcount = 0;
+/* END ================================================================= */
+
+
+/* BINARY FORMAT ======================================================= */
+/* ===================================================================== */
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)       \
 		(byte & 0x80 ? '1' : '0'), \
@@ -75,6 +97,11 @@ int lcount = 0;
 		(byte & 0x04 ? '1' : '0'), \
 		(byte & 0x02 ? '1' : '0'), \
 		(byte & 0x01 ? '1' : '0')
+/* END ================================================================= */
+
+
+/* FUNCTION PROTOTYPES ================================================= */
+/* ===================================================================== */
 void optset(int, char **);
 void helpme();
 static int satimer();
@@ -95,7 +122,11 @@ int findaseat();
 void shifter();
 void printer();
 void insertpage(int, int);
+/* END ================================================================= */
 
+
+/* MAIN ================================================================ */
+/* ===================================================================== */
 int main(int argc, char *argv[])
 {
     optset(argc, argv);
@@ -132,18 +163,19 @@ int main(int argc, char *argv[])
 	smseg->smtime.secs = 0;
 	smseg->smtime.nans = 0;
 	sem_post(&(smseg->clocksem));
-
-        satimer(); // program should exit after 2 real seconds
-
+  satimer();
 	manager();
 	
 	moppingup();
 
 return 0;
 }
+/* END ================================================================= */
 
-static pid_t pids[PCAP]; // pids is accessed in signal handlers
+static pid_t pids[PCAP];
 
+/* PROCESS SCHEDULER =================================================== */
+/* ===================================================================== */
 void manager()
 {
 	int status;
@@ -152,6 +184,7 @@ void manager()
     int ecount = 0;
 	int acount = 0;
 
+	//pid_t pids[PCAP];
 	pid_t cpid;
 	pid_t tpid;
 
@@ -164,9 +197,9 @@ void manager()
 	clockinc(&forktime, 0, nextfork);
 	sem_post(&(smseg->clocksem));
 
-	waitingroom = queueinit(10);
+	waitingroom = queueinit(200);
 
-	printf("\n[oss]: running simulation\n[oss]: on memory request scheme %i\n", scheme);
+	printf("\n[oss]: running simulation\n[oss]: on memory request scheme %i\n[oss]: ctrl-c to terminate\n", scheme);
 
 	while(1)
 	{
@@ -203,7 +236,7 @@ void manager()
 
 				acount++;
 
-				if(lcount < 10000)
+				if(lcount < 100000)
 				{
 					lcount++;
 					fprintf(outlog, "\n[oss]: [spawn process]     -> [pid: %i] [time: %is:%ins]", cpid, smseg->smtime.secs, smseg->smtime.nans);
@@ -223,7 +256,7 @@ void manager()
 				ecount++;
 				acount--;
 				
-				if(lcount < 10000)
+				if(lcount < 100000)
 				{
 					lcount++;
 					fprintf(outlog, "\n[oss]: [process terminated]     -> [pid: %i] [time: %is:%ins]", proc, smseg->smtime.secs, smseg->smtime.nans);
@@ -236,7 +269,7 @@ void manager()
 				msgrcv(tooss, &msg, sizeof(msg), proc, 0);
 				int writer = atoi(msg.message);
 				
-				if(lcount < 10000)
+				if(lcount < 100000)
 				{
 					lcount++;
 					fprintf(outlog, "\n[oss]: [write request]     -> [pid: %i] requesting write of address [0x%-5x] at [time: %is:%ins]", proc, writer * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -244,7 +277,7 @@ void manager()
 
 				if(mem.pagetableinstance[proc - 1].frames[writer].frame == -1)
 				{
-					if(lcount < 10000)
+					if(lcount < 100000)
 					{
 						lcount++;
 						fprintf(outlog, "\n[oss]: [page fault]     -> address [0x%-5x] is not in a frame, at [time: %is:%ins]", writer * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -269,7 +302,7 @@ void manager()
 				reqcount++;
 				msgrcv(tooss, &msg, sizeof(msg), proc, 0);
 				int pageid = atoi(msg.message);
-				if(lcount < 10000)
+				if(lcount < 100000)
 				{
 					lcount++;
 					fprintf(outlog, "\n[oss]: [read request]     ->  [pid: %i] requesting read of address [0x%-5x] at [time: %is:%ins]", proc, pageid * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -277,7 +310,7 @@ void manager()
 
 				if(mem.pagetableinstance[proc - 1].frames[pageid].frame == -1)
 				{
-					if(lcount < 10000)
+					if(lcount < 100000)
 					{
 						lcount++;
 						fprintf(outlog, "\n[oss]: [page fault]     -> address [0x%-5x] is not in a frame, at [time: %is:%ins]", pageid * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -300,7 +333,7 @@ void manager()
 				
 				else if(mem.pagetableinstance[proc - 1].frames[pageid].swaps == 0)
 				{	
-					if(lcount < 10000)
+					if(lcount < 100000)
 					{
 						lcount++;
 						fprintf(outlog, "\n[oss]: [read request]    -> [pid: %i] granted for read at [time: %is:%ins]", proc, smseg->smtime.secs, smseg->smtime.nans);				
@@ -322,7 +355,7 @@ void manager()
 				
 				else if(mem.pagetableinstance[proc - 1].frames[pageid].swaps == 1)
 				{
-					if(lcount < 10000)
+					if(lcount < 100000)
 					{
 						lcount++;
 						fprintf(outlog, "\n[oss]: [page fault]     -> address [0x%-5x] is not in a frame, at [time: %is:%ins]", pageid * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -381,7 +414,7 @@ void manager()
 						strcpy(msg.message,"GRANTED READ REQ");
 						msgsnd(tousr, &msg, sizeof(msg), IPC_NOWAIT);
 						
-						if(lcount < 10000)
+						if(lcount < 100000)
 						{
 							lcount++;
 							fprintf(outlog, "\n[oss]: [read request]    -> [pid: %i] granted for address [0x%-5x] read at [time: %is:%ins]", proc, pageid * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -403,7 +436,7 @@ void manager()
 						strcpy(msg.message,"GRANTED WRITE REQ");
 						msgsnd(tousr, &msg, sizeof(msg), IPC_NOWAIT);
 						
-						if(lcount < 10000)
+						if(lcount < 100000)
 						{
 							lcount++;
 							fprintf(outlog, "\n[oss]: [write request]    -> [pid: %i] granted for address [0x%-5x] write at [time: %is:%ins]", proc, pageid * 1000, smseg->smtime.secs, smseg->smtime.nans);
@@ -430,6 +463,11 @@ void manager()
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);			
 }
+/* END ================================================================= */
+
+
+/* INSERTS PAGE ======================================================== */
+/* ===================================================================== */
 void insertpage(int id, int proc)
 {
 	int i;
@@ -482,20 +520,25 @@ void insertpage(int id, int proc)
 	mem.pagetableinstance[proc - 1].frames[id].swaps = 0;
 	mem.pagetableinstance[proc - 1].frames[id].frame = temploc;
 }
+/* END ================================================================= */
+
+
+/* PRINTS ============================================================== */
+/* ===================================================================== */
 void printer()
 {
 
-	if(lcount < 10000)
+	if(lcount < 100000)
 	{
 		fprintf(outlog, "\n\nMemory Layout at [%is:%ins]\n", smseg->smtime.secs, smseg->smtime.nans);
-		fprintf(outlog, "\t     Occupied\t\tRefByte\t\tDirtyBit\n");
+		fprintf(outlog, "\t     Occupied\t\tAddress\t\tRefByte\t\tDirtyBit\n");
 		lcount = lcount + 2;
 	}
 
 	int i;
 	for(i = 0; i < memsize / pagesize; i++)
 	{
-		if(lcount < 10000)
+		if(lcount < 100000)
 		{	
 			fprintf(outlog, "Frame %i:\t", i + 1);
 			
@@ -506,7 +549,7 @@ void printer()
 				fprintf(outlog, "no\t");
 			}
 
-			fprintf(outlog, "\t%c%c%c%c%c%c%c%c\t%x", BYTE_TO_BINARY(mem.frameinstance[i].referbit), mem.frameinstance[i].dirtybit);	
+			fprintf(outlog, "\t[0x%-5x]\t%c%c%c%c%c%c%c%c\t%x", i * 1000, BYTE_TO_BINARY(mem.frameinstance[i].referbit), mem.frameinstance[i].dirtybit);	
 			lcount++;
 		}
 
@@ -514,13 +557,18 @@ void printer()
 			
 	}
 
-	if(lcount < 10000)
+	if(lcount < 100000)
 	{
 		lcount++;
 		fprintf(outlog, "\n");
 	}
 
 }
+/* END ================================================================= */
+
+
+/* SHIFTS ============================================================== */
+/* ===================================================================== */
 void shifter()
 {
 	int i;
@@ -529,6 +577,11 @@ void shifter()
 		mem.frameinstance[i].referbit = mem.frameinstance[i].referbit >> 1;
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIALIZE PCB FOR PROCESS ========================================== */
+/* ===================================================================== */
 int findaseat()
 {
 	int searcher;
@@ -542,6 +595,11 @@ int findaseat()
 	}
 	return -1;
 }
+/* END ================================================================= */
+
+
+/* BITMADE JANITOR ===================================================== */
+/* ===================================================================== */
 void moppingup()
 {
 	//shmdt(smseg);
@@ -550,6 +608,11 @@ void moppingup()
 	msgctl(tousr, IPC_RMID, NULL);
 	fclose(outlog);
 }
+/* END ================================================================= */
+
+
+/* OVERLAYS PROGRAM IMAGE WITH EXECV =================================== */
+/* ===================================================================== */
 void overlay(int id, int scheme)
 {
 	char proc[20]; 
@@ -565,6 +628,11 @@ void overlay(int id, int scheme)
 	perror("\noss: error: exec failure");
 	exit(EXIT_FAILURE);	
 }
+/* END ================================================================= */
+
+
+/* ADDS TIME BASED ON SECONDS AND NANOSECONDS ========================== */
+/* ===================================================================== */
 void clockinc(simclock* khronos, int sec, int nan)
 {
 	khronos->secs = khronos->secs + sec;
@@ -575,6 +643,11 @@ void clockinc(simclock* khronos, int sec, int nan)
 		(khronos->secs)++;
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIATES ARRAY FOR SCHEME #2 ======================================= */
+/* ===================================================================== */
 void arrinit()
 {
 	float weighted;
@@ -585,6 +658,11 @@ void arrinit()
 		smseg->weightarr[i - 1] = weighted;
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIATES RESOURCE DATA STRUCTURES ================================== */
+/* ===================================================================== */
 void tabinit()
 {
 	int m;
@@ -605,6 +683,11 @@ void tabinit()
 		}
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIATES MESSAGES ================================================== */
+/* ===================================================================== */
 void msginit()
 {
 	key_t msgkey = ftok("msg1", 925);
@@ -635,6 +718,11 @@ void msginit()
 		exit(EXIT_FAILURE);
 	}
 }
+/* END ================================================================= */
+
+
+/* INITIATES SHARED MEMORY ============================================= */
+/* ===================================================================== */
 void shminit()
 {
 	key_t smkey = ftok("shmfile", 'a');
@@ -665,9 +753,14 @@ void shminit()
 		exit(EXIT_FAILURE);
 	}
 }
+/* END ================================================================= */
+
+
+/* HANDLES SIGNALS ===================================================== */
+/* ===================================================================== */
 void killtime(int sig, siginfo_t *sainfo, void *ptr)
 {
-	char msgtime[] = "\n[oss]: exit: simulation terminated after 2s run.\n\nrefer to log.txt for results.\n\n";
+	char msgtime[] = "\n[oss]: exit: simulation terminated after 10s run.\n\nrefer to log.txt for results.\n\n";
 	int msglentime = sizeof(msgtime);
 
 	write(STDERR_FILENO, msgtime, msglentime);
@@ -681,17 +774,17 @@ void killtime(int sig, siginfo_t *sainfo, void *ptr)
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);
 
-	int i;
-	for(i = 0; i < PCAP; i++)
-	{
-		if(pids[i] != 0)
-		{
-			if(kill(pids[i], SIGTERM) == -1)
-			{
-				perror("\noss: error: ");			
-			}
-		}
-	}
+	// int i;
+	// for(i = 0; i < PCAP; i++)
+	// {
+	// 	if(pids[i] != 0)
+	// 	{
+	// 		if(kill(pids[i], SIGTERM) == -1)
+	// 		{
+	// 			perror("\noss: error: ");			
+	// 		}
+	// 	}
+	// }
 
 	fclose(outlog);
 	//shmdt(smseg);
@@ -703,6 +796,11 @@ void killtime(int sig, siginfo_t *sainfo, void *ptr)
 
 	exit(EXIT_SUCCESS);			
 }
+/* END ================================================================= */
+
+
+/* HANDLES CTRL-C SIGNAL =============================================== */
+/* ===================================================================== */
 void killctrl(int sig, siginfo_t *sainfo, void *ptr)
 {
 	char msgctrl[] = "\n[oss]: exit: received ctrl-c interrupt signal\n\nrefer to log.txt for results.\n\n";
@@ -719,17 +817,17 @@ void killctrl(int sig, siginfo_t *sainfo, void *ptr)
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);
 
-	int i;
-	for(i = 0; i < PCAP; i++)
-	{
-		if(pids[i] != 0)
-	 	{
-	 		if(kill(pids[i], SIGTERM) == -1)
-	 		{
-	 			perror("\noss: error: ");
-	 		}
-	 	}
-	 }
+	// int i;
+	// for(i = 0; i < PCAP; i++)
+	// {
+	// 	if(pids[i] != 0)
+	// 	{
+	// 		if(kill(pids[i], SIGTERM) == -1)
+	// 		{
+	// 			perror("\noss: error: ");
+	// 		}
+	// 	}
+	// }
 
 	fclose(outlog);
 	//shmdt(smseg);
@@ -741,16 +839,26 @@ void killctrl(int sig, siginfo_t *sainfo, void *ptr)
 
 	exit(EXIT_SUCCESS);			
 }
+/* END ================================================================= */
+
+
+/* SETS TIMER ========================================================== */
+/* ===================================================================== */
 static int satimer()
 {
 	struct itimerval t;
-	t.it_value.tv_sec = 2;
+	t.it_value.tv_sec = 2000;
 	t.it_value.tv_usec = 0;
 	t.it_interval.tv_sec = 0;
 	t.it_interval.tv_usec = 0;
 	
 	return(setitimer(ITIMER_REAL, &t, NULL));
 }
+/* END ================================================================= */
+
+
+/* SETS OPTIONS ======================================================== */
+/* ===================================================================== */
 void optset(int argc, char *argv[])
 {
 	int choice;
@@ -775,9 +883,15 @@ void optset(int argc, char *argv[])
 		}
 	}
 }
+/* END ================================================================= */
+
+
+/* SETS HELP ========================================================== */
+/* ===================================================================== */
 void helpme()
 {
 	printf("\n|HELP|MENU|\n\n");
     printf("\t-h : display help menu\n");
 	printf("\t-m x : specify memory request scheme. either 0 or 1\n");
 }
+/* END ================================================================= */
