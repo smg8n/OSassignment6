@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 	smseg->smtime.secs = 0;
 	smseg->smtime.nans = 0;
 	sem_post(&(smseg->clocksem));
-  satimer();
+        satimer();
 	manager();
 	
 	moppingup();
@@ -181,10 +181,9 @@ void manager()
 	int status;
 	int msglen;
 	int temp;
-    int ecount = 0;
+        int ecount = 0;
 	int acount = 0;
 
-	//pid_t pids[PCAP];
 	pid_t cpid;
 	pid_t tpid;
 
@@ -760,7 +759,7 @@ void shminit()
 /* ===================================================================== */
 void killtime(int sig, siginfo_t *sainfo, void *ptr)
 {
-	char msgtime[] = "\n[oss]: exit: simulation terminated after 10s run.\n\nrefer to log.txt for results.\n\n";
+	char msgtime[] = "\n[oss]: exit: simulation terminated after 2s run.\n\nrefer to log.txt for results.\n\n";
 	int msglentime = sizeof(msgtime);
 
 	write(STDERR_FILENO, msgtime, msglentime);
@@ -774,17 +773,17 @@ void killtime(int sig, siginfo_t *sainfo, void *ptr)
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);
 
-	// int i;
-	// for(i = 0; i < PCAP; i++)
-	// {
-	// 	if(pids[i] != 0)
-	// 	{
-	// 		if(kill(pids[i], SIGTERM) == -1)
-	// 		{
-	// 			perror("\noss: error: ");			
-	// 		}
-	// 	}
-	// }
+	 int i;
+	 for(i = 0; i < PCAP; i++)
+	 {
+	 	if(pids[i] != 0)
+	 	{
+	 		if(kill(pids[i], SIGTERM) == -1)
+	 		{
+	 			perror("\noss: error: ");			
+	 		}
+	 	}
+	 }
 
 	fclose(outlog);
 	//shmdt(smseg);
@@ -817,17 +816,17 @@ void killctrl(int sig, siginfo_t *sainfo, void *ptr)
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);
 
-	// int i;
-	// for(i = 0; i < PCAP; i++)
-	// {
-	// 	if(pids[i] != 0)
-	// 	{
-	// 		if(kill(pids[i], SIGTERM) == -1)
-	// 		{
-	// 			perror("\noss: error: ");
-	// 		}
-	// 	}
-	// }
+	 int i;
+	 for(i = 0; i < PCAP; i++)
+	 {
+	 	if(pids[i] != 0)
+	 	{
+	 		if(kill(pids[i], SIGTERM) == -1)
+	 		{
+	 			perror("\noss: error: ");
+	 		}
+	 	}
+	 }
 
 	fclose(outlog);
 	//shmdt(smseg);
@@ -847,7 +846,7 @@ void killctrl(int sig, siginfo_t *sainfo, void *ptr)
 static int satimer()
 {
 	struct itimerval t;
-	t.it_value.tv_sec = 2000;
+	t.it_value.tv_sec = 2; // seconds , 2 seconds
 	t.it_value.tv_usec = 0;
 	t.it_interval.tv_sec = 0;
 	t.it_interval.tv_usec = 0;

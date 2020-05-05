@@ -7,6 +7,7 @@
 #include <sys/shm.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/msg.h>
 #include <sys/types.h>
@@ -185,7 +186,7 @@ int main(int argc, char *argv[])
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 
 
-					sprintf(msg.message, "%i", memaddr);
+					sprintf(msg.message, "%f", memaddr);
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 
 					while(1)
@@ -204,7 +205,7 @@ int main(int argc, char *argv[])
 					msg.msgtype = proc;
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 					
-					sprintf(msg.message, "%i", memaddr);
+					sprintf(msg.message, "%f", memaddr);
 					msgsnd(tooss, &msg, sizeof(msg), 0);
 
 					while(1)
