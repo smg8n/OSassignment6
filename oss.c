@@ -266,7 +266,7 @@ void manager()
 			{
 				reqcount++;
 				msgrcv(tooss, &msg, sizeof(msg), proc, 0);
-				int writer = atoi(msg.message);
+				int writer = atoi(msg.message)%32;
 				
 				if(lcount < 100000)
 				{
@@ -300,7 +300,7 @@ void manager()
 			{
 				reqcount++;
 				msgrcv(tooss, &msg, sizeof(msg), proc, 0);
-				int pageid = atoi(msg.message);
+				int pageid = atoi(msg.message)%32;
 				if(lcount < 100000)
 				{
 					lcount++;
