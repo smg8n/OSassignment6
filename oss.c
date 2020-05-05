@@ -667,7 +667,7 @@ void shminit()
 }
 void killtime(int sig, siginfo_t *sainfo, void *ptr)
 {
-	char msgtime[] = "\n[oss]: exit: simulation terminated after 10s run.\n\nrefer to log.txt for results.\n\n";
+	char msgtime[] = "\n[oss]: exit: simulation terminated after 2s run.\n\nrefer to log.txt for results.\n\n";
 	int msglentime = sizeof(msgtime);
 
 	write(STDERR_FILENO, msgtime, msglentime);
