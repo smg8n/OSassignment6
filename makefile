@@ -18,4 +18,4 @@ $(OBJ_NATIVE): oss.c
 $(OBJ_TARGET): usr.c
 	$(CC) $(CFLAGS) -c usr.c 
 clean:
-	/bin/rm -f *.o $(BIN_NATIVE) $(BIN_TARGET)
+	/bin/rm -f *.o *.txt $(BIN_NATIVE) $(BIN_TARGET)
