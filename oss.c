@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
+#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/msg.h>
@@ -94,6 +95,7 @@ int findaseat();
 void shifter();
 void printer();
 void insertpage(int, int);
+
 int main(int argc, char *argv[])
 {
     optset(argc, argv);
@@ -131,12 +133,17 @@ int main(int argc, char *argv[])
 	smseg->smtime.nans = 0;
 	sem_post(&(smseg->clocksem));
 
+        satimer(); // program should exit after 2 real seconds
+
 	manager();
 	
 	moppingup();
 
 return 0;
 }
+
+static pid_t pids[PCAP]; // pids is accessed in signal handlers
+
 void manager()
 {
 	int status;
@@ -145,7 +152,6 @@ void manager()
     int ecount = 0;
 	int acount = 0;
 
-	pid_t pids[PCAP];
 	pid_t cpid;
 	pid_t tpid;
 
@@ -675,17 +681,17 @@ void killtime(int sig, siginfo_t *sainfo, void *ptr)
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);
 
-	// int i;
-	// for(i = 0; i < PCAP; i++)
-	// {
-	// 	if(pids[i] != 0)
-	// 	{
-	// 		if(kill(pids[i], SIGTERM) == -1)
-	// 		{
-	// 			perror("\noss: error: ");			
-	// 		}
-	// 	}
-	// }
+	int i;
+	for(i = 0; i < PCAP; i++)
+	{
+		if(pids[i] != 0)
+		{
+			if(kill(pids[i], SIGTERM) == -1)
+			{
+				perror("\noss: error: ");			
+			}
+		}
+	}
 
 	fclose(outlog);
 	//shmdt(smseg);
@@ -713,17 +719,17 @@ void killctrl(int sig, siginfo_t *sainfo, void *ptr)
 	fprintf(outlog, "\tNumber of Page Faults Per Memory Access: \t[%f]\n", faultsperaccess);
 	fprintf(outlog, "\tAverage Memory Access Speed: \t[%f]\n\n", avgaccessspeeds);
 
-	// int i;
-	// for(i = 0; i < PCAP; i++)
-	// {
-	// 	if(pids[i] != 0)
-	// 	{
-	// 		if(kill(pids[i], SIGTERM) == -1)
-	// 		{
-	// 			perror("\noss: error: ");
-	// 		}
-	// 	}
-	// }
+	int i;
+	for(i = 0; i < PCAP; i++)
+	{
+		if(pids[i] != 0)
+	 	{
+	 		if(kill(pids[i], SIGTERM) == -1)
+	 		{
+	 			perror("\noss: error: ");
+	 		}
+	 	}
+	 }
 
 	fclose(outlog);
 	//shmdt(smseg);
