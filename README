@@ -24,7 +24,7 @@ Options
 
 The output log file is log.txt
 
-msg1 , msg2 , shmfile are three different empty files created to generate keys for shared memory.
+msg1 , msg2 , shmfile are three different files created to generate keys for shared memory.
 
 Version Control
 ----------------------
