@@ -26,6 +26,12 @@ The output log file is log.txt
 
 msg1 , msg2 , shmfile are three different files created to generate keys for shared memory.
 
+Decription:
+-----------
+
+Among two memory request schemes, 1st memory scheme requests memory randomly and is more thoretical and ideal
+while the 2nd memory scheme requests with basis of weightage and is more synchronized.
+
 Version Control
 ----------------------
 For Version Control i have used github.
